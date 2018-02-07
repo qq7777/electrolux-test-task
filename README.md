@@ -1,7 +1,7 @@
 # Ovens API
 
 Test task for Electrolux.
-Appliance API that allows to create/update/
+API that allows to manage ovens.
 
 **Save Oven**
 ----
