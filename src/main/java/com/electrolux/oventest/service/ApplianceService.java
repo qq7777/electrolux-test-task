@@ -22,4 +22,6 @@ public interface ApplianceService {
     Mono<Oven> setMode(final String id,final Mode mode);
 
     Mono<Oven> setTemp(final String id, final int temp);
+
+    Mono<Void> deleteById(final String id);
 }

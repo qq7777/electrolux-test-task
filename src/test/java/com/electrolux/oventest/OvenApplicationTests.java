@@ -4,10 +4,13 @@ import com.electrolux.oventest.domain.Mode;
 import com.electrolux.oventest.domain.Oven;
 import com.electrolux.oventest.service.ApplianceService;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.annotation.Order;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 import reactor.core.publisher.Mono;
@@ -17,16 +20,19 @@ import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@FixMethodOrder(MethodSorters.DEFAULT)
 public class OvenApplicationTests {
 
     @Autowired
     private ApplianceService applianceService;
 
     private static final String DEFAULT_ID = "id_1";
-    private static final String DEFAULT_ID_2= "id_2";
+    private static final String DEFAULT_ID_2 = "id_2";
+    private static final String DEFAULT_ID_3 = "id_3";
 
     private Oven oven1;
     private Oven oven2;
+    private Oven oven3;
 
     @Before
     public void createParameters() {
@@ -45,6 +51,13 @@ public class OvenApplicationTests {
                 .temp(222)
                 .build();
 
+        oven3 = Oven.builder()
+                .id(DEFAULT_ID_3)
+                .running(true)
+                .mode(Mode.GRILL)
+                .temp(111)
+                .build();
+
     }
 
     @Test
@@ -54,9 +67,7 @@ public class OvenApplicationTests {
     @Test
     @Rollback
     public void shouldSaveAndGet() {
-
         applianceService.save(oven1).block();
-
         Oven ovenFound = applianceService.getById(DEFAULT_ID).block();
         assert ovenFound.getId().equals(DEFAULT_ID);
         assert ovenFound.getTemp() == 100;
@@ -68,7 +79,11 @@ public class OvenApplicationTests {
         applianceService.save(oven1).block();
         applianceService.save(oven2).block();
         Mono<List<Oven>> ovens = applianceService.getAll().collectList();
-        List<String> ovenIds = ovens.flux().blockFirst().stream().map(Oven::getId).collect(Collectors.toList());
+        List<String> ovenIds = ovens.flux()
+                .blockFirst()
+                .stream()
+                .map(Oven::getId)
+                .collect(Collectors.toList());
         assert ovenIds.contains(oven1.getId());
         assert ovenIds.contains(oven2.getId());
     }
@@ -97,5 +112,17 @@ public class OvenApplicationTests {
         ovenFound.setMode(Mode.TOP_SIDE);
         ovenFound.setRunning(true);
         applianceService.updateOvenParameters(ovenFound);
+    }
+
+    @Test
+    @Rollback
+    public void shouldDelete() {
+        applianceService.save(oven3).block();
+        Mono<List<Oven>> ovens = applianceService.getAll().collectList();
+        long sizeBefore = ovens.flux().blockFirst().stream().map(Oven::getId).count();
+        applianceService.deleteById(DEFAULT_ID_3).block();
+        Mono<List<Oven>> ovensAfter = applianceService.getAll().collectList();
+        long sizeAfter = ovensAfter.flux().blockFirst().stream().map(Oven::getId).count();
+        assert sizeBefore - 1 == sizeAfter;
     }
 }

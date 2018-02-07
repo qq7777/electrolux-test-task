@@ -55,4 +55,9 @@ public class ApplianceController {
         return applianceService.turnOffById(id);
     }
 
+    @GetMapping("delete/{id}")
+    public Mono<Void> delete(@PathVariable(name = "id") String id) {
+        return applianceService.deleteById(id);
+    }
+
 }

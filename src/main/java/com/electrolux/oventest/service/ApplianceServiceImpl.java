@@ -67,5 +67,10 @@ public class ApplianceServiceImpl implements ApplianceService {
         return applianceRepository.save(ovenFromRepository);
     }
 
+    @Override
+    public Mono<Void> deleteById(String id) {
+        return applianceRepository.deleteById(id);
+    }
+
 
 }
